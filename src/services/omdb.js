@@ -1,6 +1,3 @@
-console.log("All envs:", import.meta.env);
-console.log("From process.env:", process.env?.VITE_OMDB_API_KEY);
-
 const API_KEY = import.meta.env.VITE_OMDB_API_KEY || "d097f8c2";
 const BASE_URL = "https://www.omdbapi.com/";
 
