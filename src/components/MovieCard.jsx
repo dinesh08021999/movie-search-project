@@ -1,28 +1,18 @@
-import React from "react";
-
-const MovieCard = ({ movie }) => {
-  const ratings = JSON.parse(localStorage.getItem(movie.imdbID)) || [];
-  const avgRating =
-    ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
-
+export default function MovieCard({ movie }) {
   return (
-    <div className="bg-white shadow-md rounded-md overflow-hidden hover:shadow-xl transition duration-300">
-      <img
-        src={movie.Poster}
-        alt={movie.Title}
-        className="w-full h-64 object-cover"
-      />
-      <div className="p-4">
-        <h2 className="font-bold text-lg">{movie.Title}</h2>
-        <p className="text-sm text-gray-500">{movie.Year}</p>
-        <p className="text-sm mt-1">Genre: {movie.Genre || "N/A"}</p>
-        <div className="flex items-center mt-2">
-          <span className="text-yellow-500 font-bold">{avgRating.toFixed(1)}</span>
-          <span className="ml-1 text-gray-500">⭐</span>
-        </div>
+    <div className="rounded-xl overflow-hidden border bg-white shadow hover:shadow-lg transition">
+      {movie.Poster && movie.Poster !== "N/A" ? (
+        <img src={movie.Poster} alt={movie.Title} className="w-full h-64 object-cover" />
+      ) : (
+        <div className="w-full h-64 grid place-items-center text-slate-400 text-sm">No Poster</div>
+      )}
+      <div className="p-3">
+        <h2 className="text-sm font-semibold truncate">{movie.Title}</h2>
+        <p className="text-xs text-slate-500">{movie.Year}</p>
+        <span className="inline-block mt-1 text-[10px] px-2 py-1 bg-slate-100 rounded">
+          {movie.Type}
+        </span>
       </div>
     </div>
   );
-};
-
-export default MovieCard;
+}
