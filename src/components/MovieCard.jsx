@@ -1,18 +1,35 @@
-export default function MovieCard({ movie }) {
+// src/components/MovieCard.jsx
+const FALLBACK = "/placeholder-poster.jpg"; // add a simple 400x600 image in public/
+
+export default function MovieCard({ movie, onSelect }) {
+  const poster = movie.Poster && movie.Poster !== "N/A" ? movie.Poster : FALLBACK;
+
   return (
-    <div className="rounded-xl overflow-hidden border bg-white shadow hover:shadow-lg transition">
-      {movie.Poster && movie.Poster !== "N/A" ? (
-        <img src={movie.Poster} alt={movie.Title} className="w-full h-64 object-cover" />
-      ) : (
-        <div className="w-full h-64 grid place-items-center text-slate-400 text-sm">No Poster</div>
-      )}
-      <div className="p-3">
-        <h2 className="text-sm font-semibold truncate">{movie.Title}</h2>
-        <p className="text-xs text-slate-500">{movie.Year}</p>
-        <span className="inline-block mt-1 text-[10px] px-2 py-1 bg-slate-100 rounded">
-          {movie.Type}
-        </span>
+    <button
+      onClick={() => onSelect?.(movie)}
+      className="group text-left bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200 overflow-hidden w-full"
+    >
+      {/* Poster with fixed height to prevent layout shifts */}
+      <div className="w-full h-72 bg-gray-100 overflow-hidden">
+        <img
+          src={poster}
+          alt={movie.Title}
+          width="400" height="600"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+          loading="lazy"
+        />
       </div>
-    </div>
+
+      {/* Body */}
+      <div className="p-3">
+        <h3 className="font-semibold text-sm leading-snug line-clamp-2">
+          {movie.Title}
+        </h3>
+        <div className="mt-1 text-xs text-gray-600 flex items-center justify-between">
+          <span>{movie.Year}</span>
+          {movie.Type && <span className="uppercase">{movie.Type}</span>}
+        </div>
+      </div>
+    </button>
   );
 }

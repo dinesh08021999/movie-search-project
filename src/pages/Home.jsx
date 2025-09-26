@@ -1,50 +1,113 @@
-// src/pages/Home.jsx
 import { useState } from "react";
-import { searchMovies } from "../api";
-import { Link } from "react-router-dom";
+import MovieGrid from "../components/MovieGrid";
+import Pagination from "../components/Pagination";
+import MovieDetails from "../components/MovieDetails";
+
+const API_KEY = "d097f8c2"; // 🔑 Replace with your OMDb API key
 
 export default function Home() {
   const [query, setQuery] = useState("");
   const [movies, setMovies] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false); // ✅ FIXED
+  const [error, setError] = useState("");
+  const [selectedMovie, setSelectedMovie] = useState(null);
 
-  async function handleSearch(e) {
+  // Fetch movies
+  const fetchMovies = async (search, pageNumber = 1) => {
+    if (!search) return;
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch(
+        `https://www.omdbapi.com/?apikey=${API_KEY}&s=${search}&page=${pageNumber}`
+      );
+      const data = await res.json();
+
+      if (data.Response === "True") {
+        setMovies(data.Search);
+        setTotalPages(Math.ceil(data.totalResults / 10));
+      } else {
+        setMovies([]);
+        setTotalPages(1);
+        setError(data.Error || "No results found.");
+      }
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
+      setMovies([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle search submit
+  const handleSearch = (e) => {
     e.preventDefault();
-    const results = await searchMovies(query);
-    setMovies(results);
-  }
+    setPage(1);
+    fetchMovies(query, 1);
+  };
+
+  // Handle page change
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+    fetchMovies(query, newPage);
+  };
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6">🎬 Movie Search App</h1>
+    <div className="min-h-screen bg-gray-50">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Search Bar */}
+        <form
+          onSubmit={handleSearch}
+          className="flex items-center justify-center gap-2 mb-8"
+        >
+          <input
+            type="text"
+            placeholder="Search movies..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="border rounded-lg p-2 w-64 sm:w-96"
+          />
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Search
+          </button>
+        </form>
 
-      <form onSubmit={handleSearch} className="mb-6 flex gap-2">
-        <input
-          type="text"
-          placeholder="Search for a movie..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="border p-2 rounded flex-1"
+        {/* Loading */}
+        {loading && (
+          <p className="text-center text-gray-600">Loading movies...</p>
+        )}
+
+        {/* Error */}
+        {error && <p className="text-center text-red-500">{error}</p>}
+
+        {/* Movies Grid */}
+        {!loading && !error && (
+          <MovieGrid movies={movies} onSelect={(m) => setSelectedMovie(m)} />
+        )}
+
+        {/* Pagination */}
+        {!loading && movies.length > 0 && (
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            onChange={handlePageChange}
+          />
+        )}
+      </main>
+
+      {/* Movie Details Modal */}
+      {selectedMovie && (
+        <MovieDetails
+          imdbID={selectedMovie.imdbID}
+          onClose={() => setSelectedMovie(null)}
         />
-        <button className="bg-blue-600 text-white px-4 py-2 rounded">
-          Search
-        </button>
-      </form>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {movies.map((movie) => (
-          <Link key={movie.imdbID} to={`/movie/${movie.imdbID}`}>
-            <div className="border rounded-lg p-2 hover:shadow-lg">
-              <img
-                src={movie.Poster !== "N/A" ? movie.Poster : "/no-image.png"}
-                alt={movie.Title}
-                className="w-full h-60 object-cover rounded"
-              />
-              <h2 className="font-semibold mt-2">{movie.Title}</h2>
-              <p className="text-sm text-gray-600">{movie.Year}</p>
-            </div>
-          </Link>
-        ))}
-      </div>
+      )}
     </div>
   );
 }
